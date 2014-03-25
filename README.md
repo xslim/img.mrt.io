@@ -1,17 +1,19 @@
+## API
+
+### Flickr
+
+- `/flickr/:photoId`, Ex: `http://img.mrt.io/flickr/9293264066/`
+- `/flickr/:photoId/:size`, Ex: `http://img.mrt.io/flickr/9293264066/z`
+- `/flickr/set/:setId` - JSON, Ex: `http://img.mrt.io/flickr/set/72157642833471825`
+
+### Static Maps
+
+- `/map/:lat,:lon,:zoom/:size`, Ex: `http://img.mrt.io/map/52.70468296296834,5.300731658935547,13/640x200?t=here`
+
 ## Developing
 
 ``` sh
 $ npm install
 $ grunt nodemon
 
-```
-
-## Deploy
-
-``` sh
-$ grunt build
-$ NODE_ENV=production node app.js
-$ git push heroku master
-$ heroku config:set NODE_ENV=production
-$ heroku open
 ```

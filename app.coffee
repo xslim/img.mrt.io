@@ -3,6 +3,7 @@
 express = require('express')
 app = express()
 http = require('http')
+fs = require('fs')
 
 flickr = require('./flickr')
 maps = require('./maps')
@@ -48,8 +49,9 @@ global.getJSON = getJSON
 
 # Index Page
 app.get "/", (req, res, next) ->
-  res.writeHead 200, "Content-Type": "text/plain"
-  res.end "Welcome to the homepage!"
+  fs.readFile 'README.md', (err, data) ->
+    res.writeHead 200, "Content-Type": "text/plain"
+    res.end data
 
 
 # Test image proxy
