@@ -10,7 +10,11 @@ async = require 'async'
 flickr = require('./flickr')
 maps = require('./maps')
 
-env(__dirname + '/.env')
+
+if fs.existsSync(__dirname + '/.env' )
+  env(__dirname + '/.env')
+
+
 
 # For gzip compression
 app.use express.compress()
