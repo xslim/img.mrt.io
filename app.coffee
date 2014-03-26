@@ -1,12 +1,16 @@
 'use strict'
 
+env = require('node-env-file')
 express = require('express')
 app = express()
 http = require('http')
 fs = require('fs')
+async = require 'async'
 
 flickr = require('./flickr')
 maps = require('./maps')
+
+env(__dirname + '/.env')
 
 # For gzip compression
 app.use express.compress()
@@ -15,20 +19,31 @@ app.use express.compress()
 # } else {
 # }
 
-proxyTo = (url, response) ->
-  console.time url
-  try
-    http.get url, (res) ->
-      res.pipe response
+# REDIS
+if process.env.REDISTOGO_URL
+  conn_url = process.env.REDISTOGO_URL
+  rtg   = require("url").parse(conn_url)
+  redis = require("redis").createClient(rtg.port, rtg.hostname)
+  redis.on "error", (err) ->
+          console.log "Error ", err
+  redis.auth(rtg.auth.split(":")[1])
 
-  catch _error
-    response.writeHead 500,
-      "Content-Type": "text/html"
 
-    response.end url, _error.message
-  console.timeEnd url
+#
+# * Helpers
+#
 
-  
+defaultFor = (arg, val) ->
+  (if typeof arg isnt "undefined" then arg else val)
+global.defaultFor = defaultFor
+
+time_start =->
+  process.hrtime()
+time_end = (t) ->
+  t = process.hrtime(t)
+  t = (t[0] * 1e9 + t[1]) / 1e6
+  t.toFixed(0) #3
+
 getJSON = (url, callback) ->
   http.get(url, (res) ->
     body = ""
@@ -40,9 +55,45 @@ getJSON = (url, callback) ->
 
   ).on "error", (e) ->
     console.log "getJSON - Got error: ", e
+global.getJSON = getJSON  
 
-global.getJSON = getJSON
 
+#
+# * Proxy
+#
+
+#  referrer = defaultFor(req.headers['referer'], '')
+
+proxyTo = (url, response, callback) ->
+  t = time_start() if callback
+  try
+    http.get url, (res) ->
+      if callback
+        size = defaultFor(res.headers['content-length'], 0)
+        size = (size / 1024).toFixed(0)
+        callback(size, time_end(t))
+      res.pipe response
+
+  catch _error
+    response.writeHead 500, "Content-Type": "text/html"
+    response.end url, _error.message
+  
+do_proxy = (req, res, resolver) ->
+  if !redis
+    resolver req, (url) ->
+      proxyTo url, res
+    return
+    
+  req_url = req.url
+  redis.hget req_url, 'url', (err, url) ->
+    if url
+      redis.hincrby req_url, 'n', 1
+      proxyTo url, res
+    else
+      resolver req, (url) ->
+        proxyTo url, res, (kb, ms) ->
+          redis.hmset req_url, 'url', url, 'kb', kb, 'ms', ms
+          
 #
 # * Routes
 # 
@@ -53,6 +104,30 @@ app.get "/", (req, res, next) ->
     res.writeHead 200, "Content-Type": "text/plain"
     res.end data
 
+# REDIS
+app.get "/redis/flushdb", (req, res) ->
+  redis.flushdb (err, data) ->
+    res.writeHead 200, "Content-Type": "text/plain"
+    res.end (data || err)
+
+app.get "/redis/keys", (req, res) ->
+  
+  rhgetall = (key, callback) ->
+    setTimeout (->
+      redis.hgetall key, (err, resp) ->
+        h = {}
+        h[key] = resp
+        callback null, h
+    ), 500
+  
+  redis.keys '*', (err, keys) ->
+    res.writeHead 200, "Content-Type": "application/json"
+    
+    async.map keys, rhgetall, (err, result) ->
+      res.end JSON.stringify(result)
+
+
+
 
 # Test image proxy
 app.get "/slim.jpg", (req, res) ->
@@ -61,9 +136,11 @@ app.get "/slim.jpg", (req, res) ->
 
 # Static Map
 app.get "/map/:lat,:lon,:zoom/:size", (req, res) ->
-  url = maps.static_link(req.param("lat"), req.param("lon"), req.param("zoom"), req.param("size"), req.query.t)
-  proxyTo url, res
-
+  resolver = (req, callback) ->
+    url = maps.static_link(req.param("lat"), req.param("lon"), req.param("zoom"), req.param("size"), req.query.t)
+    callback url
+  do_proxy req, res, resolver
+  
 
 # Flickr
 app.get "/flickr/set/:id", (req, res) ->
@@ -72,16 +149,19 @@ app.get "/flickr/set/:id", (req, res) ->
     res.writeHead 200, "Content-Type": "application/json"
     res.end JSON.stringify(data)
 
-app.get "/flickr/:id/:size?", (req, res) ->
-  photo_id = req.param("id")
-  size = req.param("size")
-  flickr.getPhotoInfo photo_id, size, (data) ->
-    if typeof data is "string"
-      proxyTo data, res
-    else
-      res.writeHead 200, "Content-Type": "application/json"
-      res.end JSON.stringify(data)
 
+app.get "/flickr/:id/:size?", (req, res) ->
+  resolver = (req, callback) ->
+    photo_id = req.param("id")
+    size = req.param("size")
+    flickr.getPhotoInfo photo_id, size, (data) ->
+      if size is 'json'
+        res.writeHead 200, "Content-Type": "application/json"
+        res.end JSON.stringify(data)
+      else
+        callback(data)
+  
+  do_proxy req, res, resolver
 
 # Rest goes to 404
 app.get "*", (req, res) ->

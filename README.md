@@ -12,6 +12,25 @@
 
 ## Developing
 
+Use https://github.com/ddollar/heroku-config to pull / push from `.env`
+
+``` sh
+$ heroku plugins:install git://github.com/ddollar/heroku-config.git
+$ heroku config:pull
+```
+
+`.env` file:
+
+``` sh
+REDISTOGO_URL=redis://redistogo
+KEY_FLICKR=
+KEY_MAPBOX=
+KEY_GOOGLE=
+
+```
+
+Run it:
+
 ``` sh
 $ npm install
 $ grunt nodemon
