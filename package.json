@@ -16,7 +16,11 @@
     "load-grunt-tasks": "~0.1.0",
     "grunt-nodemon": "~0.2.1",
     "grunt-concurrent": "~0.3.0",
-    "grunt-express-server": "~0.4.2"
+    "grunt-express-server": "~0.4.2",
+    "mocha": "*",
+    "chai": "*",
+    "chai-http": "*",
+    "chai-json-schema": "*"
   },
   "engines": {
     "node": ">=0.10.0",

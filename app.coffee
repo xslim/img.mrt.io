@@ -101,6 +101,11 @@ do_proxy = (req, res, resolver) ->
 # * Routes
 # 
 
+# Ping
+app.get "/ping", (req, res, next) ->
+  res.writeHead 200, "Content-Type": "text/plain"
+  res.end 'PONG'
+
 # Index Page
 app.get "/", (req, res, next) ->
   fs.readFile 'README.md', (err, data) ->
