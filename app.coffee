@@ -37,10 +37,6 @@ if process.env.REDISTOGO_URL
 # * Helpers
 #
 
-defaultFor = (arg, val) ->
-  (if typeof arg isnt "undefined" then arg else val)
-global.defaultFor = defaultFor
-
 time_start =->
   process.hrtime()
 time_end = (t) ->
@@ -66,14 +62,15 @@ global.getJSON = getJSON
 # * Proxy
 #
 
-#  referrer = defaultFor(req.headers['referer'], '')
+route_notfound = (res) ->
+  res.send('404: Page not Found', 404)
 
 proxyTo = (url, response, callback) ->
   t = time_start() if callback
   try
     http.get url, (res) ->
       if callback
-        size = defaultFor(res.headers['content-length'], 0)
+        size = res.headers['content-length'] ? 0
         size = (size / 1024).toFixed(0)
         callback(size, time_end(t))
       res.pipe response
@@ -85,16 +82,18 @@ proxyTo = (url, response, callback) ->
 do_proxy = (req, res, resolver) ->
   if !redis
     resolver req, (url) ->
+      return route_notfound(res) unless url?
       proxyTo url, res
     return
     
   req_url = req.url
   redis.hget req_url, 'url', (err, url) ->
-    if url
+    if url?
       redis.hincrby req_url, 'n', 1
       proxyTo url, res
     else
       resolver req, (url) ->
+        return route_notfound(res) unless url?
         proxyTo url, res, (kb, ms) ->
           redis.hmset req_url, 'url', url, 'kb', kb, 'ms', ms
           
@@ -139,9 +138,13 @@ app.get "/slim.jpg", (req, res) ->
 
 
 # Static Map
-app.get "/map/:lat,:lon,:zoom/:size", (req, res) ->
+app.get "/map/:type?/:lat,:lon,:zoom/:size?", (req, res) ->
+  type = req.param("type") ? req.query.t
+  size = req.param("size") ? '500x200'
+  zoom = req.param("zoom") ? 13
+  
   resolver = (req, callback) ->
-    url = maps.static_link(req.param("lat"), req.param("lon"), req.param("zoom"), req.param("size"), req.query.t)
+    url = maps.static_link(req.param("lat"), req.param("lon"), zoom, size, type)
     callback url
   do_proxy req, res, resolver
   
@@ -159,11 +162,9 @@ app.get "/flickr/:id/:size?", (req, res) ->
     photo_id = req.param("id")
     size = req.param("size")
     flickr.getPhotoInfo photo_id, size, (data) ->
-      if size is 'json'
-        res.writeHead 200, "Content-Type": "application/json"
-        res.end JSON.stringify(data)
-      else
-        callback(data)
+      return callback(data) unless size is 'json'
+      res.writeHead 200, "Content-Type": "application/json"
+      res.end JSON.stringify(data)
   
   do_proxy req, res, resolver
 

@@ -6,11 +6,11 @@ flickr_img_url = (id, size, secret, server, farm) ->
   "http://farm" + farm + ".staticflickr.com/" + server + "/" + id + "_" + secret + size + ".jpg"
 
 flickr_parsePhoto = (photo, opts) ->
-  opts = defaultFor(opts, {})
-  title = defaultFor(photo.title._content, photo.title)
-  title = defaultFor(opts.title, title)
-  photo.owner = defaultFor(photo.owner, {})
-  owner = defaultFor(opts.owner, photo.owner.username)
+  opts ?= {}
+  title = photo.title._content ? photo.title
+  title = opts.title ? title
+  photo.owner ?=  {}
+  owner = opts.owner ? photo.owner.username
   tags = ""
   if photo.tags.tag
     tags = photo.tags.tag
@@ -21,7 +21,7 @@ flickr_parsePhoto = (photo, opts) ->
     tags = tag_values.join(", ")
   else
     tags = photo.tags
-  pathalias = defaultFor(photo.pathalias, photo.owner.path_alias)
+  pathalias = photo.pathalias ? photo.owner.path_alias
   url = "http://www.flickr.com/photos/" + pathalias + "/" + photo.id
   title = ""  if title is "image"
   data =
@@ -37,8 +37,7 @@ flickr_parsePhoto = (photo, opts) ->
 
   data
 
-exports.getPhotoInfo = (photo_id, size, callback) ->
-  size = defaultFor(size, "")
+exports.getPhotoInfo = (photo_id, size = "", callback) ->
   key = process.env.KEY_FLICKR
   url = "http://api.flickr.com/services/rest/?method=flickr.photos.getInfo&api_key=" + key + "&photo_id=" + photo_id + "&format=json&nojsoncallback=1"
   # console.log url
@@ -47,6 +46,7 @@ exports.getPhotoInfo = (photo_id, size, callback) ->
   else
     size = "url_" + size
   getJSON url, (json) ->
+    return callback(null) unless json.photo?
     data = flickr_parsePhoto(json.photo)
     if size is "url_json"
       callback data
@@ -59,6 +59,7 @@ exports.getSetInfo = (set_id, callback) ->
   key = process.env.KEY_FLICKR
   my_url = "http://api.flickr.com/services/rest/?method=flickr.photosets.getPhotos&api_key=" + key + "&photoset_id=" + set_id + "&extras=" + extras + "&format=json&nojsoncallback=1"
   getJSON my_url, (json) ->
+    callback null unless json.photoset?
     photos = json.photoset.photo
     info = json.photoset
     data = []
