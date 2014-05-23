@@ -29,8 +29,12 @@ flickr_parsePhoto = (photo, opts) ->
     owner: owner
     tags: tags
     link: url
-    url: flickr_img_url(photo.id, "", photo.secret, photo.server, photo.farm)
     url_s: flickr_img_url(photo.id, "s", photo.secret, photo.server, photo.farm)
+    url_q: flickr_img_url(photo.id, "q", photo.secret, photo.server, photo.farm)
+    url_t: flickr_img_url(photo.id, "t", photo.secret, photo.server, photo.farm)
+    url_m: flickr_img_url(photo.id, "m", photo.secret, photo.server, photo.farm)
+    url_n: flickr_img_url(photo.id, "n", photo.secret, photo.server, photo.farm)
+    url:   flickr_img_url(photo.id, "", photo.secret, photo.server, photo.farm)
     url_z: flickr_img_url(photo.id, "z", photo.secret, photo.server, photo.farm)
     url_b: flickr_img_url(photo.id, "b", photo.secret, photo.server, photo.farm)
     url_o: flickr_img_url(photo.id, "o", photo.originalsecret, photo.server, photo.farm)
