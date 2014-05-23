@@ -1,5 +1,7 @@
 ## API
 
+[![](https://travis-ci.org/xslim/img.mrt.io.svg)](https://travis-ci.org/xslim/img.mrt.io)
+
 ### Flickr
 
 - `/flickr/:photoId`, Ex: `http://img.mrt.io/flickr/9293264066/`
