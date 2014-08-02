@@ -5,6 +5,7 @@ express = require('express')
 app = express()
 http = require('http')
 https = require('https')
+url = require('url')
 fs = require('fs')
 async = require 'async'
 
@@ -46,7 +47,8 @@ time_end = (t) ->
   t.toFixed(0) #3
 
 getJSON = (url, callback) ->
-  var proto = (url.protocol == 'https:') ? https : http;
+  urlx = url.parse(uri);
+  proto = (urlx.protocol == 'https:') ? https : http
   proto.get(url, (res) ->
     body = ""
     res.on "data", (chunk) ->
