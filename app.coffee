@@ -47,7 +47,7 @@ time_end = (t) ->
   t.toFixed(0) #3
 
 getJSON = (url, callback) ->
-  urlx = url.parse(uri);
+  urlx = url.parse(url);
   proto = (urlx.protocol == 'https:') ? https : http
   proto.get(url, (res) ->
     body = ""
