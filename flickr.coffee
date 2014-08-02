@@ -43,7 +43,7 @@ flickr_parsePhoto = (photo, opts) ->
 
 exports.getPhotoInfo = (photo_id, size = "", callback) ->
   key = process.env.KEY_FLICKR
-  url = "http://api.flickr.com/services/rest/?method=flickr.photos.getInfo&api_key=" + key + "&photo_id=" + photo_id + "&format=json&nojsoncallback=1"
+  url = "https://api.flickr.com/services/rest/?method=flickr.photos.getInfo&api_key=" + key + "&photo_id=" + photo_id + "&format=json&nojsoncallback=1"
   # console.log url
   if size.length is 0
     size = "url"
@@ -61,7 +61,7 @@ exports.getPhotoInfo = (photo_id, size = "", callback) ->
 exports.getSetInfo = (set_id, callback) ->
   extras = "original_format%2Ctags%2Co_dims%2Cpath_alias"
   key = process.env.KEY_FLICKR
-  my_url = "http://api.flickr.com/services/rest/?method=flickr.photosets.getPhotos&api_key=" + key + "&photoset_id=" + set_id + "&extras=" + extras + "&format=json&nojsoncallback=1"
+  my_url = "https://api.flickr.com/services/rest/?method=flickr.photosets.getPhotos&api_key=" + key + "&photoset_id=" + set_id + "&extras=" + extras + "&format=json&nojsoncallback=1"
   getJSON my_url, (json) ->
     callback null unless json.photoset?
     photos = json.photoset.photo
