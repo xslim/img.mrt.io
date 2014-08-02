@@ -4,6 +4,7 @@ env = require('node-env-file')
 express = require('express')
 app = express()
 http = require('http')
+https = require('https')
 fs = require('fs')
 async = require 'async'
 
@@ -45,7 +46,8 @@ time_end = (t) ->
   t.toFixed(0) #3
 
 getJSON = (url, callback) ->
-  http.get(url, (res) ->
+  var proto = (url.protocol == 'https:') ? https : http;
+  proto.get(url, (res) ->
     body = ""
     res.on "data", (chunk) ->
       body += chunk
