@@ -5,7 +5,7 @@ express = require('express')
 app = express()
 http = require('http')
 https = require('https')
-url = require('url')
+lurl = require('url')
 fs = require('fs')
 async = require 'async'
 
@@ -46,10 +46,10 @@ time_end = (t) ->
   t = (t[0] * 1e9 + t[1]) / 1e6
   t.toFixed(0) #3
 
-getJSON = (url, callback) ->
-  urlx = url.parse(url);
-  proto = (urlx.protocol == 'https:') ? https : http
-  proto.get(url, (res) ->
+getJSON = (uri, callback) ->
+  urlx = lurl.parse(uri);
+  proto = (if (urlx.protocol == 'https:') then https else http)
+  proto.get(uri, (res) ->
     body = ""
     res.on "data", (chunk) ->
       body += chunk
@@ -59,7 +59,7 @@ getJSON = (url, callback) ->
 
   ).on "error", (e) ->
     console.log "getJSON - Got error: ", e
-global.getJSON = getJSON  
+global.getJSON = getJSON
 
 
 #
@@ -82,14 +82,14 @@ proxyTo = (url, response, callback) ->
   catch _error
     response.writeHead 500, "Content-Type": "text/html"
     response.end url, _error.message
-  
+
 do_proxy = (req, res, resolver) ->
   if !redis
     resolver req, (url) ->
       return route_notfound(res) unless url?
       proxyTo url, res
     return
-    
+
   req_url = req.url
   redis.hget req_url, 'url', (err, url) ->
     if url?
@@ -100,10 +100,10 @@ do_proxy = (req, res, resolver) ->
         return route_notfound(res) unless url?
         proxyTo url, res, (kb, ms) ->
           redis.hmset req_url, 'url', url, 'kb', kb, 'ms', ms
-          
+
 #
 # * Routes
-# 
+#
 
 # Ping
 app.get "/ping", (req, res, next) ->
@@ -123,7 +123,7 @@ app.get "/redis/flushdb", (req, res) ->
     res.end (data || err)
 
 app.get "/redis/keys", (req, res) ->
-  
+
   rhgetall = (key, callback) ->
     setTimeout (->
       redis.hgetall key, (err, resp) ->
@@ -131,10 +131,10 @@ app.get "/redis/keys", (req, res) ->
         h[key] = resp
         callback null, h
     ), 500
-  
+
   redis.keys '*', (err, keys) ->
     res.writeHead 200, "Content-Type": "application/json"
-    
+
     async.map keys, rhgetall, (err, result) ->
       res.end JSON.stringify(result)
 
@@ -151,12 +151,12 @@ app.get "/map/:type?/:lat,:lon,:zoom/:size?", (req, res) ->
   type = req.param("type") ? req.query.t
   size = req.param("size") ? '500x200'
   zoom = req.param("zoom") ? 13
-  
+
   resolver = (req, callback) ->
     url = maps.static_link(req.param("lat"), req.param("lon"), zoom, size, type)
     callback url
   do_proxy req, res, resolver
-  
+
 
 # Flickr
 app.get "/flickr/set/:id", (req, res) ->
@@ -174,7 +174,7 @@ app.get "/flickr/:id/:size?", (req, res) ->
       return callback(data) unless size is 'json'
       res.writeHead 200, "Content-Type": "application/json"
       res.end JSON.stringify(data)
-  
+
   do_proxy req, res, resolver
 
 # Rest goes to 404

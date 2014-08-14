@@ -1,4 +1,4 @@
-exports.static_link = (lat, lon, zoom, size, provider) ->
+exports.static_link = (lat, lon, zoom, size, provider="google") ->
   size = size.split("x")
   url = ""
   key = ""
@@ -8,13 +8,15 @@ exports.static_link = (lat, lon, zoom, size, provider) ->
   switch provider
     when "mapbox"
       key = process.env.KEY_MAPBOX
+      if (!key)
+        key = "examples.map-i86nkdio"
       url = "http://api.tiles.mapbox.com"
       url += "/v3/" + key + "/" + lon + "," + lat + "," + zoom + "/" + w + "x" + h + ".png"
     when "google"
       key = process.env.KEY_GOOGLE
       url = "http://maps.googleapis.com"
       url += "/maps/api/staticmap?center=" + lat + "," + lon + "&zoom=" + zoom + "&size=" + w + "x" + h + "&sensor=false"
-      if (key.length > 0)
+      if (key && key.length > 0)
         url += "&key="+key
     when "here"
       url = "http://m.nok.it"
