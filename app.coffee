@@ -23,7 +23,7 @@ if fs.existsSync(__dirname + '/.env' )
 
 
 # For gzip compression
-app.use express.compress()
+# app.use express.compress()
 
 # if (process.env.NODE_ENV === 'production') {
 # } else {
