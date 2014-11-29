@@ -33,7 +33,7 @@
 <script type="text/javascript">
 //http://jsfiddle.net/xslim/zMtF8/
 
-var flickr_api_key = "a80bf5179799d078a4cdecd8dd1ae1cf";
+var flickr_api_key = "";
 
 function el(selector) {
   return document.querySelector(selector);
@@ -79,45 +79,18 @@ function flickr_orig_img_url(id, size, secret, server, farm) {
   return "http://img.mrt.io/flickr/"+id+"/"+size
 }
 
-function flickr_parsePhoto(photo, opts) {
-  opts = defaultFor(opts, {})
-  var title = defaultFor(photo.title._content, photo.title)
-  title = defaultFor(opts.title, title)
-  photo.owner = defaultFor(photo.owner, {})
-  var owner = defaultFor(opts.owner, photo.owner.username)
-
-  var tags = ""
-  if (photo.tags.tag) {
-    tags = photo.tags.tag
-    var tag_values = [];
-    for (var index in tags) {
-        var h = tags[index]
-        tag_values.push(h._content)
-    }
-    tags = tag_values.join(', ')
-  } else {
-    tags = photo.tags
-  }
-
-  var pathalias = defaultFor(photo.pathalias, photo.owner.path_alias)
-  var url = "http://www.flickr.com/photos/"+pathalias+"/"+photo.id
-
-  if (title == 'image') {
-    title = ""
-  }
-
-  var data = {
-    "title": title,
-    "owner": owner,
-    "tags": tags,
+function flickr_preparePhoto(id) {
+  return {
+    "title": "",
+    "owner": "",
+    "tags": "",
     "url": url,
-    "url_s": flickr_img_url(photo.id, "s", photo.secret, photo.server, photo.farm),
-    "url_z": flickr_img_url(photo.id, "z", photo.secret, photo.server, photo.farm),
-    "url_b": flickr_img_url(photo.id, "b", photo.secret, photo.server, photo.farm),
-    "url_o": flickr_img_url(photo.id, "o", photo.originalsecret, photo.server, photo.farm),
-    "url_oo": flickr_orig_img_url(photo.id, "o", photo.originalsecret, photo.server, photo.farm)
+    "url_s": flickr_img_url(id, "s"),
+    "url_z": flickr_img_url(id, "z"),
+    "url_b": flickr_img_url(id, "b"),
+    "url_o": flickr_img_url(id, "o"),
+    "url_oo": flickr_orig_img_url(id, "o")
   }
-  return data
 }
 
 function flickr_showPhotos(photos) {
@@ -177,28 +150,18 @@ function flickr_do() {
 
 
 function flickr_getPhotoInfo(photo_id) {
-    var my_url = "https://api.flickr.com/services/rest/?method=flickr.photos.getInfo&api_key=" + flickr_api_key + "&photo_id=" + photo_id + "&format=json&nojsoncallback=1";
-    getJSON(my_url, function (json) {
-        var data = flickr_parsePhoto(json.photo)
+        var data = flickr_preparePhoto(photo_id)
         flickr_showPhotos([data])
-    })
 }
 
 //https://www.flickr.com/services/api/explore/flickr.photosets.getPhotos
 function flickr_photosets_getPhotos(photoset_id) {
 
   var extras = "original_format%2Ctags%2Co_dims%2Cpath_alias"
-  var my_url = "https://api.flickr.com/services/rest/?method=flickr.photosets.getPhotos&api_key=" + flickr_api_key + "&photoset_id=" + photoset_id + "&extras=" + extras + "&format=json&nojsoncallback=1";
+  //var my_url = "https://api.flickr.com/services/rest/?method=flickr.photosets.getPhotos&api_key=" + flickr_api_key + "&photoset_id=" + photoset_id + "&extras=" + extras + "&format=json&nojsoncallback=1";
+  var my_url = "http://img.mrt.io/flickr/set/" + photoset_id;
     getJSON(my_url, function (json) {
-      var photos = json.photoset.photo
-      var info = json.photoset
-      var data = []
-      for (var index in photos) {
-        var photo = photos[index]
-        data.push(flickr_parsePhoto(photo, {owner:info.ownername}))
-      }
-      flickr_showPhotos(data)
-
+      flickr_showPhotos(json)
     })
 }
 
