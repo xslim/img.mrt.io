@@ -2,12 +2,16 @@
 
 env = require('node-env-file')
 express = require('express')
-app = express()
 http = require('http')
 https = require('https')
 lurl = require('url')
 fs = require('fs')
+cors = require('cors')
 async = require 'async'
+
+app = express()
+
+app.use(cors())
 
 flickr = require('./flickr')
 maps = require('./maps')
