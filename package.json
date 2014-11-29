@@ -19,6 +19,7 @@
     "grunt-express-server": "~0.4.2",
     "mocha": "*",
     "chai": "*",
+    "cors": "*",
     "chai-http": "*",
     "chai-json-schema": "*"
   },
