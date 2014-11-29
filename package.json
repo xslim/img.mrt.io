@@ -8,7 +8,8 @@
     "express": "~3.4.0",
     "hiredis": "*",
     "redis": "*",
-    "async": "*"
+    "async": "*",
+    "cors": "*"
   },
   "devDependencies": {
     "grunt": "~0.4.1",
@@ -19,7 +20,6 @@
     "grunt-express-server": "~0.4.2",
     "mocha": "*",
     "chai": "*",
-    "cors": "*",
     "chai-http": "*",
     "chai-json-schema": "*"
   },
