@@ -1,9 +1,10 @@
 flickr_img_url = (id, size, secret, server, farm) ->
   if size.length is 0
     size = ""
-  else
-    size = "_" + size
-  "http://farm" + farm + ".staticflickr.com/" + server + "/" + id + "_" + secret + size + ".jpg"
+  # else
+  #   size = "_" + size
+  # "http://farm" + farm + ".staticflickr.com/" + server + "/" + id + "_" + secret + size + ".jpg"
+  "http://img.mrt.io/flickr/" + id + "/" + size
 
 flickr_parsePhoto = (photo, opts) ->
   opts ?= {}
