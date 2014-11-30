@@ -137,10 +137,8 @@ app.get "/redis/keys", (req, res) ->
     ), 500
 
   redis.keys '*', (err, keys) ->
-    res.writeHead 200, "Content-Type": "application/json"
-
     async.map keys, rhgetall, (err, result) ->
-      res.end JSON.stringify(result)
+      res.json result
 
 
 
@@ -166,8 +164,7 @@ app.get "/map/:type?/:lat,:lon,:zoom/:size?", (req, res) ->
 app.get "/flickr/set/:id", (req, res) ->
   set_id = req.param("id")
   flickr.getSetInfo set_id, (data) ->
-    res.writeHead 200, "Content-Type": "application/json"
-    res.end JSON.stringify(data)
+    res.json data
 
 
 app.get "/flickr/:id/:size?", (req, res) ->
@@ -176,8 +173,7 @@ app.get "/flickr/:id/:size?", (req, res) ->
     size = req.param("size")
     flickr.getPhotoInfo photo_id, size, (data) ->
       return callback(data) unless size is 'json'
-      res.writeHead 200, "Content-Type": "application/json"
-      res.end JSON.stringify(data)
+      res.json data
 
   do_proxy req, res, resolver
 
