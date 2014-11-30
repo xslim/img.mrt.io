@@ -1,5 +1,7 @@
+log = false
+
 flickr_img_url = (id, size, use_flickr, secret, server, farm) ->
-  # console.log "Getting pic info"
+  console.log "Getting info #{id}/#{size}, using_flickr: #{use_flickr}" if log
   if size.length is 0
     size = ""
   else
@@ -11,7 +13,7 @@ flickr_img_url = (id, size, use_flickr, secret, server, farm) ->
     "http://img.mrt.io/flickr/" + id + "/" + size
 
 flickr_parsePhoto = (photo, use_flickr, opts) ->
-  # console.log "flickr_parsePhoto"
+  console.log "Parsing Photo #{photo.id}, using_flickr: #{use_flickr}" if log
   opts ?= {}
   title = photo.title._content ? photo.title
   title = opts.title ? title
@@ -35,6 +37,7 @@ flickr_parsePhoto = (photo, use_flickr, opts) ->
     owner: owner
     tags: tags
     link: url
+    url_sq: flickr_img_url(photo.id, "sq", use_flickr, photo.secret, photo.server, photo.farm)
     url_s: flickr_img_url(photo.id, "s", use_flickr, photo.secret, photo.server, photo.farm)
     url_q: flickr_img_url(photo.id, "q", use_flickr, photo.secret, photo.server, photo.farm)
     url_t: flickr_img_url(photo.id, "t", use_flickr, photo.secret, photo.server, photo.farm)
@@ -43,12 +46,13 @@ flickr_parsePhoto = (photo, use_flickr, opts) ->
     url:   flickr_img_url(photo.id, "", use_flickr, photo.secret, photo.server, photo.farm)
     url_z: flickr_img_url(photo.id, "z", use_flickr, photo.secret, photo.server, photo.farm)
     url_b: flickr_img_url(photo.id, "b", use_flickr, photo.secret, photo.server, photo.farm)
+    url_l: flickr_img_url(photo.id, "l", use_flickr, photo.secret, photo.server, photo.farm)
     url_o: flickr_img_url(photo.id, "o", use_flickr, photo.originalsecret, photo.server, photo.farm)
 
   data
 
 exports.getPhotoInfo = (photo_id, size = "", callback) ->
-  # console.log "getPhotoInfo"
+  console.log "getPhotoInfo #{photo_id}" if log
   key = process.env.KEY_FLICKR
   url = "https://api.flickr.com/services/rest/?method=flickr.photos.getInfo&api_key=" + key + "&photo_id=" + photo_id + "&format=json&nojsoncallback=1"
   # console.log url
