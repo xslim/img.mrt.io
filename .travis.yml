@@ -1,14 +1,8 @@
 language: node_js
 node_js:
-  - "0.10"
+  - "node"
 cache:
-  bundler: true
   directories:
     - node_modules
-deploy:
-  provider: heroku
-  api_key:
-    secure: nDoVXS2Vo0iM70fHXpBY8KN2YeTjH+xBn6YgnmCjMh6VzqoDqKXbeT8sa76IKjxolesuvyG7x+dykMA5hGg6YE2N8Yqexyq+gjjzdboPMEaQANrj9sCDr8NANEUN7uWo1hbBj62O8KuZVLb5G+7N7Eh1IRgcIHMEXmuPosGP/T8=
-  app: mrt-img
 notifications:
   email: false
